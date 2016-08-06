@@ -72,7 +72,7 @@ public class GatewayApplication {
             http
                     .httpBasic().and()
                     .logout().and()
-                    .authorizeRequests().antMatchers("/bower_components/**", "/src/**", "/index.html", "/login", "/").permitAll().anyRequest().authenticated().and()
+                    .authorizeRequests().antMatchers("/**/bower_components/**", "/js/**", "/css/**", "/src/**", "/index.html", "/login", "/").permitAll().anyRequest().authenticated().and()
                     .csrf().csrfTokenRepository(CookieCsrfTokenRepository.withHttpOnlyFalse());
             // @formatter:on
         }

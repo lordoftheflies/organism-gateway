@@ -1,4 +1,6 @@
 <link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/app-route/app-route.html">
+<link rel="import" href="../../bower_components/app-route/app-location.html">
 <link rel="import" href="../../bower_components/iron-icon/iron-icon.html">
 <link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
 <link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
@@ -61,6 +63,8 @@
             }
         </style>
 
+        <app-location route="{{route}}" query-params="{{queryParams}}"></app-location>
+        
         <polymer-cookie id="csrfTokenCookie" name="XSRF-TOKEN" value="{{_csrfToken}}" time="1" format="d"></polymer-cookie>
         <polymer-cookie id="sessionTokenCookie" name="SESSION" value="{{sessionToken}}" time="1" format="d"></polymer-cookie>
 
@@ -168,6 +172,7 @@
             },
             onAuthenticationResponse: function (event, detail) {
                 console.log(this.is, ' authentication form response', detail);
+                location.pathname = '/ui/';
             },
             onAuthenticationError: function (event, detail) {
                 console.log(this.is, ' authentication form error', detail);

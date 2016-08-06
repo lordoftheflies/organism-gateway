@@ -8,12 +8,15 @@ security:
 zuul:
   routes:
     ui:
+      path: /ui/**
       url: http://localhost:8085
       sensitive-headers:
     admin:
+      path: /admin/**
       url: http://localhost:8086
       sensitive-headers:
     resource:
+      path: /resource/**
       url: http://localhost:8087
       sensitive-headers:
 spring:
