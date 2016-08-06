@@ -1,0 +1,193 @@
+<link rel="import" href="../../bower_components/polymer/polymer.html">
+<link rel="import" href="../../bower_components/iron-icon/iron-icon.html">
+<link rel="import" href="../../bower_components/iron-icons/iron-icons.html">
+<link rel="import" href="../../bower_components/iron-flex-layout/iron-flex-layout-classes.html">
+<link rel="import" href="../../bower_components/iron-form/iron-form.html">
+<link rel="import" href="../../bower_components/paper-card/paper-card.html">
+<link rel="import" href="../../bower_components/paper-input/paper-input.html">
+<link rel="import" href="../../bower_components/paper-button/paper-button.html">
+<link rel="import" href="../../bower_components/paper-toggle-button/paper-toggle-button.html">
+<link rel="import" href="../../bower_components/paper-icon-button/paper-icon-button.html">
+<link rel="import" href="../../bower_components/polymer-cookie/polymer-cookie.html">
+<link rel="import" href="uaa-icons.html">
+
+<dom-module id="static-app">
+    <template>
+        <style include="iron-flex iron-flex-alignment">
+            :host {
+                position: absolute;
+                top: 0;
+                left: 0;
+                right: 0;
+                bottom: 0;
+                background-color: var(--paper-purple-500);
+                transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                z-index: 1;
+                color: var(--paper-purple-50);
+                @apply(--layout);
+                @apply(--layout-center-center);
+            }
+
+            :host div.header h1 {
+
+                color: var(--paper-purple-50);
+            }
+            :host div.header {
+                position: absolute;
+                top: 0;
+                left: 10px;
+                right: 10px;
+                background-color: var(--paper-purple-500);
+                transition: opacity 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+                z-index: 1;
+                @apply(--layout);
+                @apply(--layout-center-center);
+            }
+
+
+
+            :host([signed-in]) {
+                opacity: 0;
+                pointer-events: none;
+            }
+
+            paper-button > * {
+                vertical-align: middle;
+                text-transform: none;
+            }
+
+            paper-card {
+                background-color: white;
+            }
+        </style>
+
+        <polymer-cookie id="csrfTokenCookie" name="XSRF-TOKEN" value="{{_csrfToken}}" time="1" format="d"></polymer-cookie>
+        <polymer-cookie id="sessionTokenCookie" name="SESSION" value="{{sessionToken}}" time="1" format="d"></polymer-cookie>
+
+        <div class="header">
+            <h1>Domain</h1>
+            <p>CSRF: [[_csrfToken]]</p>
+            <p>SESSION: [[sessionToken]]</p>
+        </div>
+        <form is="iron-form" id="form" method="post" headers="{{headers}}" action="/login" content-type="application/json" class="content">
+            <input type="hidden" name="_csrf" value="[[_csrfToken]]" />
+            <paper-card heading="Sign-in to [[appName]]" elevation="1">
+                <div class="card-content">
+                    <paper-input label="Login" name="username" type="text" value="{{_credentials.username}}"></paper-input>
+                    <paper-input label="Password" name="password" type="password" value="{{_credentials.password}}"></paper-input>
+                    <paper-toggle-button>Remember me</paper-toggle-button>
+                    <div class="layout horizontal">
+                        <a class="layout start" on-tap="toForgottenPassword">
+                            <iron-icon icon="account-circle"></iron-icon>
+                            <span>Forgotten password</span>
+                        </a>
+                        <a class="layout end" on-tap="toSignUp">
+                            <iron-icon icon="account-circle"></iron-icon>
+                            <span>Sign up</span>
+                        </a>
+                    </div>
+                </div>
+                <div class="card-actions layout horizontal">
+                    <paper-icon-button  icon="uaa-icons:google" on-tap="signInWithGoogle" disabled="[[disabled]]" raised>
+                    </paper-icon-button>
+                    <paper-icon-button  icon="uaa-icons:facebook" on-tap="signInWithFacebook" disabled="[[disabled]]" raised>
+                    </paper-icon-button>
+                    <paper-icon-button icon="uaa-icons:github" on-tap="signInWithGithub" disabled="[[disabled]]" raised>
+                    </paper-icon-button>
+                    <paper-button class="layout end" on-tap="signIn" disabled="[[disabled]]" raised>
+                        Sign in
+                    </paper-button>
+                </div>
+            </paper-card>
+        </form>
+    </template>
+
+    <script>
+        Polymer({
+            is: 'static-app',
+            properties: {
+                appName: {
+                    type: String,
+                    reflectToAttribute: true,
+                    value: 'My app'
+                },
+                disabled: {
+                    type: Boolean,
+                    reflectToAttribute: true,
+                    value: false
+                },
+                signedIn: {
+                    type: Boolean,
+                    reflectToAttribute: true,
+                    value: false
+                },
+//                credentials: {
+//                    type: Object,
+//                    notify: true
+//                },
+                headers: {
+                    type: Object,
+                    notify: true
+                },
+                _csrfToken: {
+                    type: String,
+                    notify: true
+                },
+                _sessionToken: {
+                    type: String,
+                    notify: true
+                },
+                _credentials: {
+                    type: Object,
+                    notify: true,
+                    value: {
+                        username: null,
+                        password: null
+                    }
+                }
+            },
+            observers: [
+                'observeAuthenticationHeaders(_credentials.username, _credentials.password)'
+            ],
+            listeners: {
+//                'iron-form-presubmit': 'computeAuthenticationHeaders',
+                'iron-form-response': 'onAuthenticationResponse',
+                'iron-form-error': 'onAuthenticationError',
+            },
+            ready: function () {
+                this._sessionToken = this.$.sessionTokenCookie.readCookie();
+                this._csrfToken = this.$.csrfTokenCookie.readCookie();
+            },
+            observeAuthenticationHeaders: function () {
+                this.headers = {
+                    'X-Requested-With': 'XMLHttpRequest',
+                    'X-XSRF-TOKEN': this._csrfToken,
+                    'authorization': "Basic " + btoa(this._credentials.username + ":" + this._credentials.password)
+                };
+                console.log(this.is, ' compute HTTP headers: ', this.headers);
+            },
+            onAuthenticationResponse: function (event, detail) {
+                console.log(this.is, ' authentication form response', detail);
+            },
+            onAuthenticationError: function (event, detail) {
+                console.log(this.is, ' authentication form error', detail);
+            },
+            signIn: function () {
+                console.log(this.is, ' sign-in action.');
+                this.$.form.submit();
+            },
+            signInViaEmail: function () {
+                console.log('Fire "sign-in-via-email" event.');
+                this.fire('sign-in-via-email', null, {
+                    bubbles: false
+                });
+            },
+            signInWithGoogle: function () {
+                console.log('Fire "sign-in-with-google" event.');
+                this.fire('sign-in-with-google', null, {
+                    bubbles: false
+                });
+            }
+        });
+    </script>
+</dom-module>

@@ -1,0 +1,24 @@
+logging:
+  level:
+    org.springframework.security: DEBUG
+security:
+  sessions: ALWAYS
+  user:
+        password: password
+zuul:
+  routes:
+    ui:
+      url: http://localhost:8085
+      sensitive-headers:
+    admin:
+      url: http://localhost:8086
+      sensitive-headers:
+    resource:
+      url: http://localhost:8087
+      sensitive-headers:
+spring:
+    redis:
+        host: localhost
+        password: qwe123
+        port: 6379
+        
