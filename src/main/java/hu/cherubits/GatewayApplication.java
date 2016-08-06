@@ -57,12 +57,12 @@ public class GatewayApplication {
         @Autowired
         public void globalUserDetails(AuthenticationManagerBuilder auth) throws Exception {
             // @formatter:off
+//            auth.jdbcAuthentication()
+//                    .
             auth.inMemoryAuthentication()
                     .withUser("user").password("password").roles("USER")
                     .and()
-                    .withUser("admin").password("admin").roles("USER", "ADMIN", "READER", "WRITER")
-                    .and()
-                    .withUser("audit").password("audit").roles("USER", "ADMIN", "READER");
+                    .withUser("admin").password("admin").roles("USER", "ADMIN", "READER", "WRITER");
 // @formatter:on
         }
 
