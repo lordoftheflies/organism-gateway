@@ -13,3 +13,4 @@ hs_err_pid*
 
 **/target/
 **/bower_components/
+/src/main/resources/static/nbproject/private/
